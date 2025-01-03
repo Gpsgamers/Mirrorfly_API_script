@@ -9,18 +9,21 @@ import java.util.Map;
 import groovy.lang.Newify;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 public class base {
 
 	public static void main(String[] args) {
 		io.restassured.response.Response response;
-		String header = "Content-Type:multipart/form-data";
-		String requestBody = "chatType:singlechat" 
-				+ ",messageType:text" 
-				+ ",toUser:917305466010" 
-				+ ",message:hello";
+		String header = "Content-Type:application/json";
+		String requestBody = "{ \"password\": \"lEHcFXIAp47mIEv\", \"username\": \"917358337102\", \"type\": \"\" }";
+		
+		get_request("post",
+				header,
+				"https://api-uikit-qa.contus.us/api/v1/login",
+				"",
+				requestBody);
 
-		get_request("post", "https://api-uikit-qa.contus.us/api/v1/chat/sendmessage", header, requestBody);
 	}
 
 	public static Map<String, Object> multipart(String requestBody) {
@@ -39,30 +42,42 @@ public class base {
 		return multipart;
 	}
 
-	public static Object get_request(String requestType, String endpoint, String header, String requestBody) {
+	public static Object get_request(String requestType, String header, String endpoint, String Queryparam,
+			String requestBody) {
 
 		Map<String, Object> Headers = multipart(header);
 
 		switch (requestType.toLowerCase()) {
-		case "get":
-			return given().headers(Headers).log().all().when().get(endpoint).then().log().all();
+		case "get": {
+			return given().headers(Headers).log().all().when().get(endpoint+Queryparam).then().log().all();
+		}
 		case "post": {
 			if (header.toLowerCase().contains("multipart")) {
 				Map<String, Object> multipart = multipart(requestBody);
-				return given().headers(Headers).contentType("multipart/form-data")
-						.multiPart("file", "example.txt", "File content goes here".getBytes()).formParams(multipart)
-						.log().all().post(endpoint).then().log().all();
+				RequestSpecification request = given().headers(Headers);
+
+				multipart.forEach((key, value) -> {
+					if (value instanceof File) {
+						request.multiPart(key, (File) value);
+					} else {
+						request.multiPart(key, (String) value);
+					}
+				});
+
+				return request.log().all().post(endpoint+Queryparam).then().log().all();
 
 			} else if (header.toLowerCase().contains("json")) {
 
-				return given().headers(Headers).body(requestBody).log().all().when().post(endpoint).then().log().all();
+				return given().headers(Headers).body(requestBody).log().all().when().post(endpoint+Queryparam).then().log().all();
 			} else {
 				System.out.println("unsupported");
+				return nullValue();
 			}
 
 		}
-		case "delete":
-			return given().headers(Headers).body(requestBody).log().all().when().delete(endpoint).then().log().all();
+		case "delete": {
+			return given().headers(Headers).body(requestBody).log().all().when().delete(endpoint+Queryparam).then().log().all();
+		}
 		default:
 			return null;
 		}
