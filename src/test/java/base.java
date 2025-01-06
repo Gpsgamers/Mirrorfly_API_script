@@ -17,7 +17,7 @@ public class base {
 		io.restassured.response.Response response;
 		String header = "Content-Type:application/json";
 		String requestBody = "{ \"password\": \"lEHcFXIAp47mIEv\", \"username\": \"917358337102\", \"type\": \"\" }";
-		
+		//(issue type , header , endpoints ,Queryparam , requestbody )
 		get_request("post",
 				header,
 				"https://api-uikit-qa.contus.us/api/v1/login",
